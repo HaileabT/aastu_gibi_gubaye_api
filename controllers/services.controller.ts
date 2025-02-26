@@ -23,7 +23,7 @@ export const getServices = catchAsync(async (req: Request, res: Response) => {
 
   res.status(200).json({
     status: 'success',
-    data: [services],
+    data: services,
   });
 });
 
