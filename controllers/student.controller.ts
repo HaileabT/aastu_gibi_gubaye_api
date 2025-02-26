@@ -20,6 +20,10 @@ const studentRepo = AppDataSource.getRepository(Student);
 const serviceRepo = AppDataSource.getRepository(Service);
 const languageRepo = AppDataSource.getRepository(Language);
 
+const getTotalStudents = async (): Promise<number> => {
+  return await studentRepo.count();
+};
+
 export const getStudents = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const {
@@ -71,8 +75,11 @@ export const getStudents = catchAsync(
       .orderBy('loweredStu', 'ASC')
       .getMany();
 
+    const totalStudents = await getTotalStudents();
+    
     res.status(200).json({
       status: 'success',
+      total: totalStudents,
       length: students.length,
       data: {
         students,
