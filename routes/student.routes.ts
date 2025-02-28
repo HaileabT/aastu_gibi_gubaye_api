@@ -14,6 +14,7 @@ import {
   authorizeAdmin,
 } from '../middlewares/auth.middleware';
 import {LogIn} from '../controllers/login.controller';
+import {getStatsStudents} from '../controllers/student.controller';
 
 const router = Router();
 

@@ -14,15 +14,12 @@ import {hashPassword} from './auth.controller';
 import {searchUtils} from '../shared/utils/searchUtils';
 import {studentReq} from '../types/custom';
 import {studentAddValidator} from '../shared/validators/student.validator';
-import {format} from '@fast-csv/format';
+import {format} from 'fast-csv';
+import {capitalize} from '../shared/utils/capitalize.utils';
 
 const studentRepo = AppDataSource.getRepository(Student);
 const serviceRepo = AppDataSource.getRepository(Service);
 const languageRepo = AppDataSource.getRepository(Language);
-
-const getTotalStudents = async (): Promise<number> => {
-  return await studentRepo.count();
-};
 
 export const getStudents = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -66,6 +63,8 @@ export const getStudents = catchAsync(
       searchUtils(queryBuilder, keyword.toString());
     }
 
+    const totalStudents = await queryBuilder.getCount();
+
     const skip = (Number(page) - 1) * Number(limit);
     queryBuilder.take(Number(limit));
     queryBuilder.skip(skip);
@@ -75,7 +74,6 @@ export const getStudents = catchAsync(
       .orderBy('loweredStu', 'ASC')
       .getMany();
 
-    const totalStudents = await getTotalStudents();
     res.status(200).json({
       status: 'success',
       total: totalStudents,
@@ -89,6 +87,10 @@ export const getStudents = catchAsync(
 
 export const createStudent = catchAsync(async (req: Request, res: Response) => {
   const reqBody = req.body;
+  const {first_name, last_name, baptismal_name} = reqBody;
+  reqBody.first_name = capitalize(first_name);
+  reqBody.last_name = capitalize(last_name);
+  reqBody.baptismal_name = capitalize(baptismal_name);
   const password = req.body.password;
   const serviceIds: string[] = req.body.service ?? [];
   const languageIds: string[] = req.body.language ?? [];
@@ -176,6 +178,10 @@ export const updateStudent = catchAsync(
     const languageIds: string[] = req.body.language ?? [];
     const {service, language, ...otherFields} = req.body;
     const reqBody = req.body;
+    const {first_name, last_name, baptismal_name} = reqBody;
+    reqBody.first_name = capitalize(first_name);
+    reqBody.last_name = capitalize(last_name);
+    reqBody.baptismal_name = capitalize(baptismal_name);
 
     const student = await studentRepo.findOne({
       where: {id: studentId},
@@ -295,6 +301,7 @@ export const downloadStudentSpreadsheet = catchAsync(
     };
 
     queryBuilder
+      .select()
       .leftJoinAndSelect('student.department', 'department')
       .leftJoinAndSelect('student.service', 'service')
       .leftJoinAndSelect('student.language', 'language')
@@ -310,13 +317,42 @@ export const downloadStudentSpreadsheet = catchAsync(
       .orderBy('loweredStu', 'ASC')
       .getMany();
 
-    res.setHeader('Content-Disposition', 'attachment: filename=data.csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="data.csv"');
     res.setHeader('Content-Type', 'text/csv');
 
-    const csvStream = format({headers: true}).pipe(res);
+    const csvStream = format({headers: true});
+    csvStream.pipe(res);
+
+    type PasswordIDOmitted = Omit<Student, 'password'>;
+    type CSVStudent = Omit<
+      PasswordIDOmitted,
+      'department' | 'service' | 'language' | 'confession' | 'id'
+    > & {
+      id?: string;
+      department: string;
+      service: string;
+      language: string;
+      confession: string;
+    };
 
     students.forEach(student => {
-      csvStream.write(student);
+      delete student['password'];
+
+      const stu = {
+        ...student,
+        department: student.department.department,
+        service: student.service
+          ? student.service.map(ser => ser.name).join(' & ')
+          : '',
+        language: student.language.map(lang => lang.name).join(' & '),
+        confession: student.confession
+          ? student.confession.first_name + ' ' + student.confession.last_name
+          : '',
+      } as CSVStudent;
+
+      delete stu['id'];
+
+      csvStream.write(stu);
     });
 
     csvStream.end();
