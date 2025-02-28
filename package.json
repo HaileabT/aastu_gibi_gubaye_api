@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.ts",
+    "start:prod": "node dist/server.js",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
