@@ -11,10 +11,10 @@ import {Service} from '../models/serviceModel';
 import {ServiceD} from '../domain_entities/service.entity';
 import {LanguageD} from '../domain_entities/language.entity';
 import {hashPassword} from './auth.controller';
-import {boolean, object, promise} from 'zod';
 import {searchUtils} from '../shared/utils/searchUtils';
 import {studentReq} from '../types/custom';
 import {studentAddValidator} from '../shared/validators/student.validator';
+import {format} from '@fast-csv/format';
 
 const studentRepo = AppDataSource.getRepository(Student);
 const serviceRepo = AppDataSource.getRepository(Service);
@@ -76,7 +76,6 @@ export const getStudents = catchAsync(
       .getMany();
 
     const totalStudents = await getTotalStudents();
-
     res.status(200).json({
       status: 'success',
       total: totalStudents,
@@ -265,5 +264,61 @@ export const getStatsStudents = catchAsync(
         students,
       },
     });
+  }
+);
+
+export const downloadStudentSpreadsheet = catchAsync(
+  async (req: Request, res: Response) => {
+    const {
+      department,
+      service,
+      language,
+      confession,
+      current_year,
+      role,
+      gender,
+      sort = 'first_name',
+      keyword = '',
+    } = req.query;
+
+    const queryBuilder = studentRepo.createQueryBuilder('student');
+
+    const filters: filterOption = {
+      department: typeof department === 'string' ? department : undefined,
+      confession: typeof confession === 'string' ? confession : undefined,
+      language: typeof language === 'string' ? language : undefined,
+      service: typeof service === 'string' ? service : undefined,
+      role: typeof role === 'string' ? role : undefined,
+      current_year: typeof current_year === 'string' ? current_year : undefined,
+      gender: typeof gender === 'string' ? gender : undefined,
+      sort: typeof sort === 'string' ? sort : 'first_name',
+    };
+
+    queryBuilder
+      .leftJoinAndSelect('student.department', 'department')
+      .leftJoinAndSelect('student.service', 'service')
+      .leftJoinAndSelect('student.language', 'language')
+      .leftJoinAndSelect('student.confession', 'confession');
+
+    filterUtils(queryBuilder, filters);
+    if (keyword) {
+      searchUtils(queryBuilder, keyword.toString());
+    }
+
+    let students = await queryBuilder
+      .addSelect(`LOWER(student.${sort})`, 'loweredStu')
+      .orderBy('loweredStu', 'ASC')
+      .getMany();
+
+    res.setHeader('Content-Disposition', 'attachment: filename=data.csv');
+    res.setHeader('Content-Type', 'text/csv');
+
+    const csvStream = format({headers: true}).pipe(res);
+
+    students.forEach(student => {
+      csvStream.write(student);
+    });
+
+    csvStream.end();
   }
 );

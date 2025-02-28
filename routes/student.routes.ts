@@ -6,7 +6,7 @@ import {
   getOneStudent,
   updateStudent,
   getLogedInPerson,
-  getStatsStudents,
+  downloadStudentSpreadsheet,
 } from '../controllers/student.controller';
 import {
   AddAdminAndSuperAdmin,
@@ -22,6 +22,7 @@ router
   .get(authenticateJWT, authorizeAdmin, getStudents)
   .post(authenticateJWT, authorizeAdmin, AddAdminAndSuperAdmin, createStudent);
 
+router.route('/download-spreadsheet').get(downloadStudentSpreadsheet);
 router
   .route('/:id')
   .get(getOneStudent)
