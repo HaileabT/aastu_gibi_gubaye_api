@@ -1,3 +1,8 @@
 node_modules
 .env
 *.env
+
+package-lock.json
+.idea
+pnpm-lock.yaml
+dist

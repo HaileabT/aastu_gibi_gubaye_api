@@ -2,8 +2,6 @@ import {configDotenv} from 'dotenv';
 configDotenv();
 
 export const envs = {
-  tursoToken: process.env.TURSO_TOKEN,
-  tursoEndpoint: process.env.TURSO_ENDPOINT,
-  tursoUrl:
-    process.env.TURSO_ENDPOINT + '?authToken=' + process.env.TURSO_TOKEN,
+  _JWT_SECRET: process.env.JWT_SECRET ?? 'aastu-gibi-gubaye',
+  _FRONTEND_URL: process.env.FRONTEND_URL,
 };

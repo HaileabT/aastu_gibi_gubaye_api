@@ -1,5 +1,4 @@
 import express, {json} from 'express';
-import cookieParse from 'cookie-parser';
 import cors from 'cors';
 import {Express} from 'express';
 import {deptRouter} from './routes/department.routes';
@@ -9,12 +8,13 @@ import {serviceRouter} from './routes/service.routes';
 import {confessionRouter} from './routes/confession.routes';
 import {errorHandler} from './shared/utils/errorHandler';
 import cookieParser from 'cookie-parser';
+import {envs} from './shared/utils/environment_vars';
 
 const app: Express = express();
 
 app.use(
   cors({
-    origin: ['http://localhost:5173'],
+    origin: [envs._FRONTEND_URL ?? 'http://localhost:5173'],
     credentials: true,
   })
 );

@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import {envs} from '../shared/utils/environment_vars';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'gebigubye-web-api';
+const JWT_SECRET = envs._JWT_SECRET;
 
 export const hashPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt(10);
