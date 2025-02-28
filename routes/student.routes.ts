@@ -6,6 +6,7 @@ import {
   getOneStudent,
   updateStudent,
   getLogedInPerson,
+  getStatsStudents,
 } from '../controllers/student.controller';
 import {
   AddAdminAndSuperAdmin,
@@ -28,6 +29,7 @@ router
   .put(authenticateJWT, authorizeAdmin, updateStudent);
 
 router.route('/logedin/person').get(authenticateJWT, getLogedInPerson);
+router.route('/stats/studentdata').get(getStatsStudents);
 
 router.route('/login').post(LogIn);
 

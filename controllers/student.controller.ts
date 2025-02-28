@@ -76,7 +76,7 @@ export const getStudents = catchAsync(
       .getMany();
 
     const totalStudents = await getTotalStudents();
-    
+
     res.status(200).json({
       status: 'success',
       total: totalStudents,
@@ -230,6 +230,40 @@ export const getLogedInPerson = catchAsync(
     return res.status(200).json({
       status: 'success',
       data: data,
+    });
+  }
+);
+
+export const getStatsStudents = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const {department, service, current_year, role, gender} = req.query;
+
+    const queryBuilder = studentRepo.createQueryBuilder('student');
+
+    const filters: filterOption = {
+      department: typeof department === 'string' ? department : undefined,
+      service: typeof service === 'string' ? service : undefined,
+      role: typeof role === 'string' ? role : undefined,
+      current_year: typeof current_year === 'string' ? current_year : undefined,
+      gender: typeof gender === 'string' ? gender : undefined,
+    };
+
+    queryBuilder
+      .leftJoinAndSelect('student.department', 'department')
+      .leftJoinAndSelect('student.service', 'service')
+      .leftJoinAndSelect('student.language', 'language')
+      .leftJoinAndSelect('student.confession', 'confession');
+
+    filterUtils(queryBuilder, filters);
+
+    let students = await queryBuilder.getMany();
+
+    res.status(200).json({
+      status: 'success',
+      Studentlangth: students.length,
+      data: {
+        students,
+      },
     });
   }
 );
