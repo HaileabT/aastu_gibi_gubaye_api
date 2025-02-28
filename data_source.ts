@@ -6,7 +6,7 @@ export const AppDataSource = new DataSource({
   database: 'gebigubye.db',
   entities:
     process.env.NODE_ENV === 'production'
-      ? [__dirname + '/dist/models/**/*.js']
+      ? [__dirname + '/models/**/*.js']
       : [__dirname + '/models/**/*.ts'],
   synchronize: process.env.NODE_ENV === 'production' ? false : true,
 });
