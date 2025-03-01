@@ -13,7 +13,9 @@ export const createStudentSchema = z.object({
   gender: z.enum(['male', 'female']),
   baptismal_name: z.string().max(256, 'Name overflowed memory.').optional(),
   email: z.string().email('Invalid email address').optional().or(literal('')),
-  role: z.enum(['std-user', 'vice_admin', 'admin', 'Super-admin']).optional(),
+  role: z
+    .enum(['std-user', 'vice_admin', 'admin', 'Super-admin', 'Enroller'])
+    .optional(),
   current_year: z.string().optional(),
   service: z.string().array().optional(),
   department: z.string(),

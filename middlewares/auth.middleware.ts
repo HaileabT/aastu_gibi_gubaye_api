@@ -71,7 +71,7 @@ export const AddAdminAndSuperAdmin = (
 ) => {
   if (
     req.student &&
-    req.student.role == 'admin' &&
+    (req.student.role == 'admin' || req.student.role == 'Enroller') &&
     (req.body.role == 'Super-admin' || req.body.role == 'admin')
   ) {
     res.status(403).json({
@@ -80,5 +80,24 @@ export const AddAdminAndSuperAdmin = (
     return;
   } else {
     next();
+  }
+};
+
+export const RegisterAuthorizer = (
+  req: studentReq,
+  res: Response,
+  next: NextFunction
+) => {
+  if (
+    (req.student && req.student.role === 'admin') ||
+    (req.student && req.student.role === 'Super-admin') ||
+    (req.student && req.student.role === 'Enroller')
+  ) {
+    return next();
+  } else {
+    res.status(403).json({
+      message: 'You are not authorized to do this action',
+    });
+    return;
   }
 };
