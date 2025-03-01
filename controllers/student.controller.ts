@@ -176,12 +176,15 @@ export const updateStudent = catchAsync(
     const studentId = req.params.id;
     const serviceIds: string[] = req.body.service ?? [];
     const languageIds: string[] = req.body.language ?? [];
-    const {service, language, ...otherFields} = req.body;
+    const {
+      service,
+      language,
+      first_name,
+      last_name,
+      baptismal_name,
+      ...otherFields
+    } = req.body;
     const reqBody = req.body;
-    const {first_name, last_name, baptismal_name} = reqBody;
-    reqBody.first_name = capitalize(first_name);
-    reqBody.last_name = capitalize(last_name);
-    reqBody.baptismal_name = capitalize(baptismal_name);
 
     const student = await studentRepo.findOne({
       where: {id: studentId},
@@ -190,6 +193,15 @@ export const updateStudent = catchAsync(
 
     if (!student) {
       throw new customError('Student not found', 404);
+    }
+    if (reqBody.first_name) {
+      student.first_name = capitalize(first_name);
+    }
+    if (reqBody.last_name) {
+      student.last_name = capitalize(last_name);
+    }
+    if (reqBody.baptismal_name) {
+      student.baptismal_name = capitalize(baptismal_name);
     }
 
     Object.assign(student, otherFields);
